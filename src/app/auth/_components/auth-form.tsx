@@ -10,10 +10,12 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import {
   Form,
@@ -24,6 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { signIn } from "next-auth/react";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -31,6 +34,7 @@ const formSchema = z.object({
   }),
 });
 export default function AuthForm() {
+  const notify = () => toast.success("Seja bem vindo!");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,8 +42,13 @@ export default function AuthForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await signIn("email", { email: values.email, redirect: false });
+      notify();
+    } catch (error) {
+      console.error("Failed to sign in", error);
+    }
   }
 
   return (
@@ -72,11 +81,9 @@ export default function AuthForm() {
                 )}
               />
 
-              <CardFooter>
-                <Button className="w-full" type="submit">
-                  Entrar
-                </Button>
-              </CardFooter>
+              <Button className="w-full" type="submit">
+                Entrar
+              </Button>
             </form>
           </Form>
         </CardContent>
